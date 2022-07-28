@@ -1,28 +1,19 @@
-# unplugin-starter
+# unplugin-untype
 
-[![NPM version](https://img.shields.io/npm/v/unplugin-starter?color=a1b858&label=)](https://www.npmjs.com/package/unplugin-starter)
+Experimental untype plugin. Used to get type string. Can be helpful to write docs.
 
-Starter template for [unplugin](https://github.com/unjs/unplugin).
+## Spec
 
-## Template Usage
+In progress
 
-To use this template, clone it down using:
+[![NPM version](https://img.shields.io/npm/v/unplugin-untype?color=a1b858&label=)](https://www.npmjs.com/package/unplugin-untype)
 
-```bash
-npx degit antfu/unplugin-starter my-unplugin
-```
-
-And do a global replace of `unplugin-starter` with your plugin name.
-
-Then you can start developing your unplugin 🔥
-
-To test your plugin, run: `pnpm run dev`
-To release a new version, run: `pnpm run release`
+Untype template for [unplugin](https://github.com/unjs/unplugin).
 
 ## Install
 
 ```bash
-npm i unplugin-starter
+npm i unplugin-untype
 ```
 
 <details>
@@ -30,11 +21,11 @@ npm i unplugin-starter
 
 ```ts
 // vite.config.ts
-import Starter from 'unplugin-starter/vite'
+import Untype from 'unplugin-untype/vite'
 
 export default defineConfig({
   plugins: [
-    Starter({ /* options */ }),
+    Untype({ /* options */ }),
   ],
 })
 ```
@@ -48,11 +39,11 @@ Example: [`playground/`](./playground/)
 
 ```ts
 // rollup.config.js
-import Starter from 'unplugin-starter/rollup'
+import Untype from 'unplugin-untype/rollup'
 
 export default {
   plugins: [
-    Starter({ /* options */ }),
+    Untype({ /* options */ }),
   ],
 }
 ```
@@ -68,7 +59,7 @@ export default {
 module.exports = {
   /* ... */
   plugins: [
-    require('unplugin-starter/webpack')({ /* options */ })
+    require('unplugin-untype/webpack')({ /* options */ })
   ]
 }
 ```
@@ -82,7 +73,7 @@ module.exports = {
 // nuxt.config.js
 export default {
   buildModules: [
-    ['unplugin-starter/nuxt', { /* options */ }],
+    ['unplugin-untype/nuxt', { /* options */ }],
   ],
 }
 ```
@@ -99,7 +90,7 @@ export default {
 module.exports = {
   configureWebpack: {
     plugins: [
-      require('unplugin-starter/webpack')({ /* options */ }),
+      require('unplugin-untype/webpack')({ /* options */ }),
     ],
   },
 }
@@ -113,10 +104,10 @@ module.exports = {
 ```ts
 // esbuild.config.js
 import { build } from 'esbuild'
-import Starter from 'unplugin-starter/esbuild'
+import Untype from 'unplugin-untype/esbuild'
 
 build({
-  plugins: [Starter()],
+  plugins: [Untype()],
 })
 ```
 

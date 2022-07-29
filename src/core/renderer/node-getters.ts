@@ -23,10 +23,6 @@ export const nodeNameOrThrow = (node: Node) => {
   return name
 }
 
-export const nodeType = (node: Node) => {
-  return getNodeChildren(node).filter(child => child.getKind() !== SyntaxKind.Identifier)[0]
-}
-
 export const nodeTypes = (node: Node) => {
   return getNodeChildren(node).filter(child => ![
     SyntaxKind.Identifier,
@@ -34,7 +30,15 @@ export const nodeTypes = (node: Node) => {
   ].includes(child.getKind()))
 }
 
+export const nodeType = (node: Node) => {
+  return nodeTypes(node)[0]
+}
+
 export const getNodeChildrenKinds = (node: Node) => getNodeChildren(node).map(node => node.getKindName())
+
+export const getNodeTypeArguments = (node: Node) => {
+  return nodeTypes(node)
+}
 
 export const isTypeDeclaration = (node: Node) => {
   return ['InterfaceDeclaration', 'TypeAliasDeclaration'].includes(node.getKindName())

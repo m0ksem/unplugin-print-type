@@ -19,9 +19,17 @@ export class UntypeRenderer extends UntypeTreeProcessor {
     const kind = node.getKind()
     const parent = this.parent
 
+    console.log(name, node.getKindName())
+
     if (kind === SyntaxKind.TypeReference && name) {
       const cached = this.typeDeclarations.get(name)
-      if (!cached) { throw new Error('Unexpected error: Type declaration doesn\'t exist') }
+      if (!cached) {
+        const args = nodeTypes(node)
+
+        if (args.length === 0) { return name }
+
+        return `${name}<${args.map(arg => this.renderNode(arg)).join(', ')}>`
+      }
       return this.withParent(node, () => this.renderNode(cached))
     }
 
@@ -31,6 +39,7 @@ export class UntypeRenderer extends UntypeTreeProcessor {
     }
 
     if (isNodePrimitive(node)) {
+      console.log(node.getKindName(), node.getText())
       return node.getText()
     }
 
@@ -74,7 +83,22 @@ export class UntypeRenderer extends UntypeTreeProcessor {
       return `${name}: ${this.renderNode(nodeType(node))}`
     }
 
-    return ''
+    if (kind === SyntaxKind.ParenthesizedType) {
+      return `(${nodeType(node)})`
+    }
+
+    if (kind === SyntaxKind.FunctionType) {
+      const children = getNodeChildren(node)
+      const params = children
+        .filter(child => child.getKind() === SyntaxKind.Parameter)
+        .map(child => `${nodeName(child)}: ${this.renderNode(nodeType(child))}`)
+        .join(', ')
+      const returnType = this.renderNode(children.find(child => child.getKind() === SyntaxKind.TypeReference)!)
+
+      return `(${params}) => ${returnType}`
+    }
+
+    return 'UNKNOWN'
   }
 
   renderType(typeName: string): string {

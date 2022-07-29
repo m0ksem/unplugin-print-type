@@ -1,15 +1,7 @@
-type Guest = 'guest'
-type Admin = 'admin' | 'superadmin'
-type Role = 'user' | Guest | Admin
+export type DataTableItem = Record<string, any>
 
-interface User {
-  role: Role
-  username: string
-}
+export type DataTableRowBind = Record<string, string> | ((item: DataTableItem, index: number) => Record<string, string>)
 
-type Project = {
-  name: string
-  owner: User
-}
-
-document.getElementById('app')!.innerHTML = Untype<Project>('Project').definition
+const textarea = document.createElement('textarea')
+textarea.value = Untype<DataTableRowBind>('DataTableRowBind').definition
+document.getElementById('app')!.appendChild(textarea)

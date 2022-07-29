@@ -7,7 +7,7 @@ declare type Untype<T> = string
  * 
  * Untype<User>()
  */
-declare function Untype(typeName: string): {
+declare function Untype<T>(typeName: string): {
   definition: string
   name: string
   text: string

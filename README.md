@@ -4,7 +4,7 @@ Experimental untype plugin. Used to get type string. Can be helpful to write doc
 
 ## Spec
 
-In progress
+Plugin must provide global compiler macros `Untype(type: string): UntypeObject`. Function returns object, that contains type value.
 
 [![NPM version](https://img.shields.io/npm/v/unplugin-untype?color=a1b858&label=)](https://www.npmjs.com/package/unplugin-untype)
 

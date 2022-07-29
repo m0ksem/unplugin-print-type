@@ -1,8 +1,5 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-interface User {
-  name: string
-  age: number
-  gender: 'male' | 'female' | '🤖'
-}
+type Guest = 'guest'
+type Admin = 'admin' | 'superadmin'
+type User = 'user' | Guest | Admin
 
-document.getElementById('app')!.innerHTML = Untype('User').definition
+document.getElementById('app')!.innerHTML = Untype<User>('User').definition

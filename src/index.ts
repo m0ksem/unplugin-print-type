@@ -1,13 +1,12 @@
 import { resolve } from 'path'
 import { createUnplugin } from 'unplugin'
 import { Project } from 'ts-morph'
-import { walkAst } from './core/walk-ast'
+import { UntypeCompiler } from './core/renderer/index'
 import type { Options } from './types'
 import { extractTypeToUntype } from './core/extractTypesToUntype'
-import { parseAst } from './core/parse-ast'
-import { createUntypeFunction } from './core/create-untype-object'
 
 let project: Project
+let compiler: UntypeCompiler
 
 export default createUnplugin<Options>(() => ({
   name: 'unplugin-untype',
@@ -18,6 +17,7 @@ export default createUnplugin<Options>(() => ({
 
     // TODO: Move to options
     project.addSourceFilesAtPaths('./**/*{.d.ts,.ts}')
+    compiler = new UntypeCompiler()
   },
 
   transformInclude(id) {
@@ -33,19 +33,14 @@ export default createUnplugin<Options>(() => ({
 
     const nodeMap = new Map()
 
-    walkAst(ast, (node) => {
-      if (node.getKindName() === 'InterfaceDeclaration') {
-        walkAst(node, (child) => {
-          if (child.getKindName() !== 'Identifier') { return }
-          if (!typesToUntype.includes(child.getText())) { return }
+    compiler.processTree(ast)
 
-          nodeMap.set(child.getText(), parseAst(node))
-        })
-      }
+    typesToUntype.forEach((typeName) => {
+      nodeMap.set(typeName, compiler.renderType(typeName))
     })
 
     for (const [type, untyped] of nodeMap) {
-      code = code.replace(new RegExp(`Untype\\("${type}"\\)`, 'gm'), createUntypeFunction(untyped))
+      code = code.replace(new RegExp(`Untype\\("${type}"\\)`, 'gm'), compiler.toUntypeObject(untyped))
     }
 
     return code

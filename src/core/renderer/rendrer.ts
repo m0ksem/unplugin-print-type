@@ -87,7 +87,8 @@ export class UntypeRenderer extends UntypeTreeProcessor {
     }
 
     if (kind === SyntaxKind.InterfaceDeclaration || kind === SyntaxKind.TypeLiteral) {
-      return `{ ${nodeTypes(node).map(child => this.renderNode(child)).join(', ')} }`
+      // TODO: Not sure about this formatting right here
+      return `{ \n  ${nodeTypes(node).map(child => this.renderNode(child)).join('\n  ')}\n}`
     }
 
     if (kind === SyntaxKind.ArrayType) {

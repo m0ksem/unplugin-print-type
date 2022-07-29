@@ -1,4 +1,4 @@
-const untypeSyntaxParseRegex = /Untype\((.*)\)/gm
+const untypeSyntaxParseRegex = /Untype\(([^\)]*)\)/gm
 
 const unQoute = (str: string) => str.replace(/'|"|`/g, '')
 

@@ -27,7 +27,13 @@ export const nodeTypes = (node: Node) => {
   return getNodeChildren(node).filter(child => ![
     SyntaxKind.Identifier,
     SyntaxKind.ExportKeyword,
+    SyntaxKind.Parameter,
+    SyntaxKind.QuestionToken,
   ].includes(child.getKind()))
+}
+
+export const nodeParameter = (node: Node) => {
+  return getNodeChildren(node).find(node => node.getKind() === SyntaxKind.Parameter)
 }
 
 export const nodeType = (node: Node) => {
@@ -48,6 +54,10 @@ export const isType = (node: Node) => {
   return ['UnionType', 'IntersectionType'].includes(node.getKindName())
 }
 
+export const isOptional = (node: Node) => {
+  return getNodeChildren(node).find(node => node.getKind() === SyntaxKind.QuestionToken)
+}
+
 const primitives = [
   SyntaxKind.StringKeyword,
   SyntaxKind.NumberKeyword,
@@ -64,6 +74,7 @@ const primitives = [
   SyntaxKind.LiteralType,
   SyntaxKind.TrueKeyword,
   SyntaxKind.FalseKeyword,
+  SyntaxKind.UnknownKeyword,
 ]
 export const isNodePrimitive = (node: Node) => {
   return primitives.includes(node.getKind())

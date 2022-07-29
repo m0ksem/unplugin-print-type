@@ -1,10 +1,11 @@
 import type { Node } from 'ts-morph'
 import { SyntaxKind } from 'ts-morph'
-import { getNodeChildren, isNodePrimitive, isType, nodeName, nodeType, nodeTypes } from './node-getters'
+import { getNodeChildren, isNodePrimitive, isOptional, isType, nodeName, nodeParameter, nodeType, nodeTypes } from './node-getters'
 import { UntypeTreeProcessor } from './tree-processor'
 
 export class UntypeRenderer extends UntypeTreeProcessor {
   private processed: string[] = []
+  private cachedRenders: Map<string, string> = new Map()
   private parent: Node | null = null
 
   private withParent<T>(parent: Node, cb: () => T) {
@@ -15,14 +16,16 @@ export class UntypeRenderer extends UntypeTreeProcessor {
   }
 
   private renderNode(node: Node): string {
+    if (!node) { return '' }
     const name = nodeName(node)
     const kind = node.getKind()
     const parent = this.parent
 
-    console.log(name, node.getKindName())
+    // console.log(name, node.getKindName())
 
     if (kind === SyntaxKind.TypeReference && name) {
       const cached = this.typeDeclarations.get(name)
+      console.log(name, !!cached)
       if (!cached) {
         const args = nodeTypes(node)
 
@@ -30,16 +33,19 @@ export class UntypeRenderer extends UntypeTreeProcessor {
 
         return `${name}<${args.map(arg => this.renderNode(arg)).join(', ')}>`
       }
-      return this.withParent(node, () => this.renderNode(cached))
+      const renderedReference = this.withParent(node, () => this.renderNode(cached))
+      this.cachedRenders.set(name, renderedReference)
+      return renderedReference
     }
 
-    if (name) {
-      if (this.processed.includes(name)) { return name }
+    if (name && kind !== SyntaxKind.PropertySignature) {
+      if (this.processed.includes(name)) {
+        return this.cachedRenders.get(name) ?? name
+      }
       else { this.processed.push(name) }
     }
 
     if (isNodePrimitive(node)) {
-      console.log(node.getKindName(), node.getText())
       return node.getText()
     }
 
@@ -84,6 +90,18 @@ export class UntypeRenderer extends UntypeTreeProcessor {
     }
 
     if (kind === SyntaxKind.PropertySignature) {
+      const optional = isOptional(node)
+      return `${name}${optional ? '?' : ''}: ${this.renderNode(nodeType(node))}`
+    }
+
+    if (kind === SyntaxKind.IndexSignature) {
+      const parameter = nodeParameter(node)
+      const type = nodeType(node)
+
+      return `[${this.renderNode(parameter!)}]: ${this.renderNode(type)}`
+    }
+
+    if (kind === SyntaxKind.Parameter) {
       return `${name}: ${this.renderNode(nodeType(node))}`
     }
 

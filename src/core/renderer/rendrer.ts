@@ -25,7 +25,6 @@ export class UntypeRenderer extends UntypeTreeProcessor {
 
     if (kind === SyntaxKind.TypeReference && name) {
       const cached = this.typeDeclarations.get(name)
-      console.log(name, !!cached)
       if (!cached) {
         const args = nodeTypes(node)
 
@@ -66,13 +65,19 @@ export class UntypeRenderer extends UntypeTreeProcessor {
     }
 
     if (kind === SyntaxKind.UnionType) {
-      const type = getNodeChildren(node).map(child => this.renderNode(child)).join(' | ')
+      const type = getNodeChildren(node).map(child =>
+        child.getKind() === SyntaxKind.ParenthesizedType
+          ? `(${this.renderNode(child)})`
+          : this.renderNode(child)).join(' | ')
       if (getParentTypeKind()) { return `(${type})` }
       return type
     }
 
     if (kind === SyntaxKind.IntersectionType) {
-      const type = getNodeChildren(node).map(child => this.renderNode(child)).join(' & ')
+      const type = getNodeChildren(node).map(child =>
+        child.getKind() === SyntaxKind.ParenthesizedType
+          ? `(${this.renderNode(child)})`
+          : this.renderNode(child)).join(' & ')
       if (getParentTypeKind()) { return `(${type})` }
       return type
     }
@@ -115,7 +120,7 @@ export class UntypeRenderer extends UntypeTreeProcessor {
         .filter(child => child.getKind() === SyntaxKind.Parameter)
         .map(child => `${nodeName(child)}: ${this.renderNode(nodeType(child))}`)
         .join(', ')
-      const returnType = this.renderNode(children.find(child => child.getKind() === SyntaxKind.TypeReference)!)
+      const returnType = this.renderNode(children.find(child => child.getKind() !== SyntaxKind.Parameter)!)
 
       return `(${params}) => ${returnType}`
     }

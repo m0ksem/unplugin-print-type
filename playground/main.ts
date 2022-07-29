@@ -1,5 +1,15 @@
 type Guest = 'guest'
 type Admin = 'admin' | 'superadmin'
-type User = 'user' | Guest | Admin
+type Role = 'user' | Guest | Admin
 
-document.getElementById('app')!.innerHTML = Untype<User>('User').definition
+interface User {
+  role: Role
+  username: string
+}
+
+type Project = {
+  name: string
+  owner: User
+}
+
+document.getElementById('app')!.innerHTML = Untype<Project>('Project').definition

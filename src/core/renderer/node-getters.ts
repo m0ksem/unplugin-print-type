@@ -27,6 +27,13 @@ export const nodeType = (node: Node) => {
   return getNodeChildren(node).filter(child => child.getKind() !== SyntaxKind.Identifier)[0]
 }
 
+export const nodeTypes = (node: Node) => {
+  return getNodeChildren(node).filter(child => ![
+    SyntaxKind.Identifier,
+    SyntaxKind.ExportKeyword,
+  ].includes(child.getKind()))
+}
+
 export const getNodeChildrenKinds = (node: Node) => getNodeChildren(node).map(node => node.getKindName())
 
 export const isTypeDeclaration = (node: Node) => {

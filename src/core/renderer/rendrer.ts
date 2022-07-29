@@ -1,6 +1,6 @@
 import type { Node } from 'ts-morph'
 import { SyntaxKind } from 'ts-morph'
-import { getNodeChildren, isNodePrimitive, isType, nodeName, nodeType } from './node-getters'
+import { getNodeChildren, isNodePrimitive, isType, nodeName, nodeType, nodeTypes } from './node-getters'
 import { UntypeTreeProcessor } from './tree-processor'
 
 export class UntypeRenderer extends UntypeTreeProcessor {
@@ -16,7 +16,6 @@ export class UntypeRenderer extends UntypeTreeProcessor {
 
   private renderNode(node: Node): string {
     const name = nodeName(node)
-    // const kindName = node.getKindName()
     const kind = node.getKind()
     const parent = this.parent
 
@@ -63,9 +62,16 @@ export class UntypeRenderer extends UntypeTreeProcessor {
       return type
     }
 
-    if (kind === SyntaxKind.TypeAliasDeclaration || kind === SyntaxKind.InterfaceDeclaration) {
-      const type = nodeType(node)
-      return this.renderNode(type)
+    if (kind === SyntaxKind.TypeAliasDeclaration) {
+      return this.renderNode(nodeType(node))
+    }
+
+    if (kind === SyntaxKind.InterfaceDeclaration || kind === SyntaxKind.TypeLiteral) {
+      return `{ ${nodeTypes(node).map(child => this.renderNode(child)).join(', ')} }`
+    }
+
+    if (kind === SyntaxKind.PropertySignature) {
+      return `${name}: ${this.renderNode(nodeType(node))}`
     }
 
     return ''

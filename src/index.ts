@@ -17,13 +17,14 @@ export default createUnplugin<Options>(() => ({
 
     // TODO: Move to options
     project.addSourceFilesAtPaths('./**/*{.d.ts,.ts}')
-    compiler = new UntypeCompiler()
   },
 
   transformInclude(id) {
     return id.endsWith('main.ts')
   },
   transform(code, id) {
+    compiler = new UntypeCompiler()
+
     const typesToUntype = extractTypeToUntype(code)
 
     const ast = project.getSourceFile(id)

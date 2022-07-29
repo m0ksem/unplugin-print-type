@@ -79,6 +79,10 @@ export class UntypeRenderer extends UntypeTreeProcessor {
       return `{ ${nodeTypes(node).map(child => this.renderNode(child)).join(', ')} }`
     }
 
+    if (kind === SyntaxKind.ArrayType) {
+      return `${this.renderNode(nodeType(node))}[]`
+    }
+
     if (kind === SyntaxKind.PropertySignature) {
       return `${name}: ${this.renderNode(nodeType(node))}`
     }

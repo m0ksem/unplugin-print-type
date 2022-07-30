@@ -1,4 +1,4 @@
-# unplugin-untype
+# unplugin-print-type
 
 Experimental untype plugin. Used to get type string. Can be helpful to write docs.
 
@@ -6,14 +6,14 @@ Experimental untype plugin. Used to get type string. Can be helpful to write doc
 
 Plugin must provide global compiler macros `Untype(type: string): UntypeObject`. Function returns object, that contains type value.
 
-[![NPM version](https://img.shields.io/npm/v/unplugin-untype?color=a1b858&label=)](https://www.npmjs.com/package/unplugin-untype)
+[![NPM version](https://img.shields.io/npm/v/unplugin-print-type?color=a1b858&label=)](https://www.npmjs.com/package/unplugin-print-type)
 
 Untype template for [unplugin](https://github.com/unjs/unplugin).
 
 ## Install
 
 ```bash
-npm i unplugin-untype
+npm i unplugin-print-type
 ```
 
 <details>
@@ -21,7 +21,7 @@ npm i unplugin-untype
 
 ```ts
 // vite.config.ts
-import Untype from 'unplugin-untype/vite'
+import Untype from 'unplugin-print-type/vite'
 
 export default defineConfig({
   plugins: [
@@ -39,7 +39,7 @@ Example: [`playground/`](./playground/)
 
 ```ts
 // rollup.config.js
-import Untype from 'unplugin-untype/rollup'
+import Untype from 'unplugin-print-type/rollup'
 
 export default {
   plugins: [
@@ -59,7 +59,7 @@ export default {
 module.exports = {
   /* ... */
   plugins: [
-    require('unplugin-untype/webpack')({ /* options */ })
+    require('unplugin-print-type/webpack')({ /* options */ })
   ]
 }
 ```
@@ -73,7 +73,7 @@ module.exports = {
 // nuxt.config.js
 export default {
   buildModules: [
-    ['unplugin-untype/nuxt', { /* options */ }],
+    ['unplugin-print-type/nuxt', { /* options */ }],
   ],
 }
 ```
@@ -90,7 +90,7 @@ export default {
 module.exports = {
   configureWebpack: {
     plugins: [
-      require('unplugin-untype/webpack')({ /* options */ }),
+      require('unplugin-print-type/webpack')({ /* options */ }),
     ],
   },
 }
@@ -104,7 +104,7 @@ module.exports = {
 ```ts
 // esbuild.config.js
 import { build } from 'esbuild'
-import Untype from 'unplugin-untype/esbuild'
+import Untype from 'unplugin-print-type/esbuild'
 
 build({
   plugins: [Untype()],

@@ -7,7 +7,7 @@ import { createRenderer } from './core/renderer/createRenderer'
 let project: Project
 
 export default createUnplugin<UntypePluginOptions>(() => ({
-  name: 'unplugin-untype',
+  name: 'unplugin-print-type',
 
   buildStart() {
     project = new Project({})

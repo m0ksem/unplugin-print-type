@@ -4,10 +4,7 @@ import { SyntaxKind } from 'ts-morph'
 /** Get children without stuff like =, type, ; etc. */
 export const getNodeChildren = (node: Node) => {
   const nodes: Node[] = []
-  node.forEachChild((child) => {
-    nodes.push(child)
-    return undefined
-  })
+  node.forEachChild((child) => { nodes.push(child) })
   return nodes
 }
 
@@ -40,18 +37,8 @@ export const nodeType = (node: Node) => {
   return nodeTypes(node)[0]
 }
 
-export const getNodeChildrenKinds = (node: Node) => getNodeChildren(node).map(node => node.getKindName())
-
-export const getNodeTypeArguments = (node: Node) => {
-  return nodeTypes(node)
-}
-
 export const isTypeDeclaration = (node: Node) => {
   return ['InterfaceDeclaration', 'TypeAliasDeclaration'].includes(node.getKindName())
-}
-
-export const isType = (node: Node) => {
-  return ['UnionType', 'IntersectionType'].includes(node.getKindName())
 }
 
 export const isOptional = (node: Node) => {

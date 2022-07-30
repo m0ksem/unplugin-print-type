@@ -102,7 +102,7 @@ export const createRenderer = (project: Project) => {
       return `{${inner}}`
     }
 
-    // Utils
+    // Merge and utils
 
     const isInUtil = () => {
       return getParentWhile(current => ['UnionType', 'IntersectionType'].includes(current.getKindName()))
@@ -122,6 +122,14 @@ export const createRenderer = (project: Project) => {
         .join(' & ')
 
       return isInUtil() ? `(${type})` : type
+    }
+
+    if (kind === SyntaxKind.TemplateLiteralType || kind === SyntaxKind.TemplateLiteralTypeSpan) {
+      return getNodeChildren(node).reduce((acc, child) => acc + renderNode(child), '')
+    }
+
+    if ([SyntaxKind.TemplateHead, SyntaxKind.TemplateMiddle, SyntaxKind.TemplateTail].includes(kind)) {
+      return node.getText()
     }
 
     console.warn(`Unexpected node kind: ${node.getKindName()}. Rendered as unknown type.`)

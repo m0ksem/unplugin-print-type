@@ -26,6 +26,7 @@ export const nodeTypes = (node: Node) => {
     SyntaxKind.ExportKeyword,
     SyntaxKind.Parameter,
     SyntaxKind.QuestionToken,
+    SyntaxKind.TemplateHead,
   ].includes(child.getKind()))
 }
 

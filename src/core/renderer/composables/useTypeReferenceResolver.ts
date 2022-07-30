@@ -6,7 +6,7 @@ import { getNodeChildren, nodeName, nodeNameOrThrow } from '../node-getters'
 import { walk } from '../../walk-ast'
 
 export const isNodeImport = (node: Node) => {
-  return node.getKind() === SyntaxKind.ImportDeclaration
+  return node && node.getKind() === SyntaxKind.ImportDeclaration
 }
 
 export const isNodeTypeDeclaration = (node: Node) => {
@@ -17,7 +17,7 @@ export const isNodeTypeDeclaration = (node: Node) => {
 }
 
 export const isNodeTypeReference = (node: Node) => {
-  return node.getKind() === SyntaxKind.TypeReference
+  return node && node.getKind() === SyntaxKind.TypeReference
 }
 
 /** Allow to resolve type reference from file or imports */
@@ -38,6 +38,8 @@ export const useTypeReferenceResolver = (project: Project) => {
 
   const addFileToContext = (node: Node, filePath: string) => {
     walk(node, (child) => {
+      if (!child) { return }
+
       if (isNodeImport(child)) {
         processImport(child, filePath)
       }
@@ -48,7 +50,15 @@ export const useTypeReferenceResolver = (project: Project) => {
   }
 
   const resolveImport = (path: string) => {
-    addFileToContext(project.addSourceFileAtPathIfExists(path)!, path)
+    // TODO: Not sure how to handle types from .tsx, .d.ts etc.
+    if (path.endsWith('.ts.ts')) {
+      path = path.slice(0, -3)
+    }
+    const file = project.addSourceFileAtPathIfExists(path)
+    if (!file) {
+      throw new Error(`File ${path} not found.\n\nAvailable files:\n${project.getSourceFiles().map(file => file.getFilePath()).join(',\n')}`)
+    }
+    addFileToContext(file, path)
   }
 
   const resolveTypeReference = (node: Node) => {

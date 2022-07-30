@@ -62,10 +62,6 @@ export const useTypeReferenceResolver = (project: Project) => {
   }
 
   const resolveTypeReference = (node: Node) => {
-    if (!isNodeTypeReference(node)) {
-      throw new Error(`Expected node to be a type reference, got ${node.getKindName()}`)
-    }
-
     const name = nodeName(node)!
 
     const importPath = importPaths.get(name)

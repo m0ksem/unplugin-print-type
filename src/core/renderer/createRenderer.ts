@@ -21,7 +21,7 @@ export const createRenderer = (project: Project) => {
 
     const kind = node.getKind()
 
-    if (kind === SyntaxKind.TypeReference) {
+    if (kind === SyntaxKind.TypeReference || kind === SyntaxKind.ExpressionWithTypeArguments) {
       const typeReference = resolveTypeReference(node)
 
       if (!typeReference) {
@@ -91,7 +91,17 @@ export const createRenderer = (project: Project) => {
 
       const inner = withTab((tab) => {
         const children = types
-          .map(child => renderNode(child))
+          .map((child) => {
+            if (child.getKind() === SyntaxKind.HeritageClause) {
+              return getNodeChildren(child).map((child) => {
+                const rendered = renderNode(child)
+                if (rendered === '{}') { return '' }
+                if (rendered.startsWith('{ ')) { return rendered.slice(2, -2) }
+                return rendered
+              }).join(`\n${tab}`)
+            }
+            return renderNode(child)
+          })
 
         if (children.length === 0) { return '' }
         if (children.length === 1) { return ` ${children[0]} ` }

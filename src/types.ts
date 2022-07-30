@@ -1,4 +1,16 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import type { FilterPattern } from '@rollup/pluginutils'
+
+declare global {
+  /**
+ * Compiler macro. Will transform type to human readable string.
+ *
+ * @usage
+ *
+ * PrintType<User>()
+ */
+  function PrintType<T>(): string
+}
 
 export interface PrintTypePluginOptions {
   fnName: 'PrintType'

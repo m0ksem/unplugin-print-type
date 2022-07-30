@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createCodeRenderer, createProjectRenderer } from './_createCodeRenderer'
+import { createCodeRenderer, createProjectRenderer } from '../_createCodeRenderer'
 
 describe('reference', () => {
   it('type alias -> type alias', () => {

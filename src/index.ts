@@ -1,35 +1,38 @@
 import { createUnplugin } from 'unplugin'
 import { Project } from 'ts-morph'
-import type { UntypePluginOptions } from './types'
-import { extractTypeToUntype } from './core/extractTypesToUntype'
+import { createFilter } from '@rollup/pluginutils'
+import { createRendererContext } from './composables/useRendererContext'
+import type { PrintTypePluginOptions } from './types'
 import { createRenderer } from './core/renderer/createRenderer'
 
-let project: Project
+export default createUnplugin<Partial<PrintTypePluginOptions>>((options) => {
+  const ctx = createRendererContext(options)
+  const filter = createFilter(ctx.include, ctx.exclude)
 
-export default createUnplugin<UntypePluginOptions>(() => ({
-  name: 'unplugin-print-type',
+  const project = new Project()
 
-  buildStart() {
-    project = new Project({})
+  return {
+    name: 'unplugin-print-type',
 
-    // // TODO: Move to options
-    project.addSourceFilesAtPaths('./**/*{.d.ts,.ts}')
-  },
+    enforce: 'pre',
 
-  transformInclude(id) {
-    return id.endsWith('main.ts')
-  },
-  transform(code, id) {
-    const renderer = createRenderer(project)
-    const typesToUntype = extractTypeToUntype(code)
+    transformInclude(id) {
+      return filter(id)
+    },
 
-    renderer.addFile(id)
+    transform(code, id) {
+      const renderer = createRenderer(project)
 
-    for (const typeName of typesToUntype) {
-      const untyped = renderer.renderTypeByName(typeName)
-      code = code.replace(new RegExp(`Untype\\("${typeName}"\\)`, 'gm'), renderer.createUntypeObject(untyped))
-    }
+      project.createSourceFile(id, code, { overwrite: true })
+      renderer.addFile(id)
 
-    return code
-  },
-}))
+      const typeNames = [...renderer.typesToPrint.keys()]
+      for (const typeToPrint of typeNames) {
+        const untyped = renderer.renderTypeByName(typeToPrint)
+        code = code.replace(new RegExp(`PrintType<${typeToPrint}>\\(\\)`, 'gm'), renderer.createUntypeObject(untyped))
+      }
+
+      return code
+    },
+  }
+})

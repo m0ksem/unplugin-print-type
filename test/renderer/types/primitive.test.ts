@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createCodeRenderer } from './_createCodeRenderer'
+import { createCodeRenderer } from '../_createCodeRenderer'
 
 describe('primitive', () => {
   [

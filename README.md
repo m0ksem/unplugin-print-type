@@ -1,14 +1,34 @@
 # unplugin-print-type
 
-Experimental untype plugin. Used to get type string. Can be helpful to write docs.
+Experimental TS type printer. 
 
-## Spec
+Print TS type deeply handle all subtypes. Useful if you want to document types.
 
-Plugin must provide global compiler macros `Untype(type: string): UntypeObject`. Function returns object, that contains type value.
+## Features
+- Render type during build (Zero runtime-code)
+- Render type aliases and interfaces to string
+- Resolve imported types
 
-[![NPM version](https://img.shields.io/npm/v/unplugin-print-type?color=a1b858&label=)](https://www.npmjs.com/package/unplugin-print-type)
+## Usage
 
-Untype template for [unplugin](https://github.com/unjs/unplugin).
+```ts
+import type { UserRole } from './user'
+
+interface User {
+  name: string
+  role: UserRole
+}
+
+console.log(`User type: ${PrintType<User>()}`)
+```
+
+Output
+```plain
+User type: {
+  name: string
+  role: 'admin' | 'user'
+}
+```
 
 ## Install
 
@@ -33,23 +53,6 @@ export default defineConfig({
 Example: [`playground/`](./playground/)
 
 <br></details>
-
-<details>
-<summary>Rollup</summary><br>
-
-```ts
-// rollup.config.js
-import Untype from 'unplugin-print-type/rollup'
-
-export default {
-  plugins: [
-    Untype({ /* options */ }),
-  ],
-}
-```
-
-<br></details>
-
 
 <details>
 <summary>Webpack</summary><br>
@@ -94,21 +97,6 @@ module.exports = {
     ],
   },
 }
-```
-
-<br></details>
-
-<details>
-<summary>esbuild</summary><br>
-
-```ts
-// esbuild.config.js
-import { build } from 'esbuild'
-import Untype from 'unplugin-print-type/esbuild'
-
-build({
-  plugins: [Untype()],
-})
 ```
 
 <br></details>

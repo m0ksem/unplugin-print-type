@@ -1,4 +1,4 @@
-import type { UntypePluginOptions } from '../src/types'
+import type { PrintTypePluginOptions } from '../src/types'
 
 interface Animal {
   roar: () => string
@@ -11,7 +11,7 @@ type User = {
 
 interface Plugin {
   user: User
-  config: UntypePluginOptions
+  config: PrintTypePluginOptions
 }
 
-console.log(Untype<Plugin>('Plugin').definition)
+console.log(PrintType<Plugin>())

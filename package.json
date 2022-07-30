@@ -32,14 +32,6 @@
       "require": "./dist/webpack.js",
       "import": "./dist/webpack.mjs"
     },
-    "./rollup": {
-      "require": "./dist/rollup.js",
-      "import": "./dist/rollup.mjs"
-    },
-    "./esbuild": {
-      "require": "./dist/esbuild.js",
-      "import": "./dist/esbuild.mjs"
-    },
     "./nuxt": {
       "require": "./dist/nuxt.js",
       "import": "./dist/nuxt.mjs"

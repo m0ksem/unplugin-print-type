@@ -1,7 +1,7 @@
-import type { UntypePluginOptions } from './types'
+import type { PrintTypePluginOptions } from './types'
 import unplugin from '.'
 
-export default function (this: any, options: UntypePluginOptions) {
+export default function (this: any, options: PrintTypePluginOptions) {
   // install webpack plugin
   this.extendBuild((config: any) => {
     config.plugins = config.plugins || []

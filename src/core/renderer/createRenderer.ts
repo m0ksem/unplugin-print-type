@@ -9,7 +9,7 @@ import {
 import { getNodeChildren, isNodePrimitive, isOptional, nodeName, nodeParameter, nodeType, nodeTypes } from './node-getters'
 
 export const createRenderer = (project: Project) => {
-  const { resolveTypeReference, addFileToContext, resolveByName } = useTypeReferenceResolver(project)
+  const { resolveTypeReference, addFileToContext, resolveByName, typesToPrint } = useTypeReferenceResolver(project)
   const { getParentWhile, withParent } = useParentNode()
   const { cache, withCache } = useTypeReferenceCache<string>()
   const { withTab, tab } = useTabRenderer()
@@ -158,9 +158,7 @@ export const createRenderer = (project: Project) => {
   }
 
   const createUntypeObject = (renderedType: string) => {
-    return `({
-      definition: \`${renderedType}\`,
-    })`
+    return `\`${renderedType}\``
   }
 
   return {
@@ -168,5 +166,6 @@ export const createRenderer = (project: Project) => {
     addFile,
     renderTypeByName,
     createUntypeObject,
+    typesToPrint,
   }
 }

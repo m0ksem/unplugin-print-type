@@ -1,5 +1,5 @@
 import { Project } from 'ts-morph'
-import { createRenderer } from '../../../src/core/renderer/createRenderer'
+import { createRenderer } from '../../src/core/renderer/createRenderer'
 
 export const createCodeRenderer = (code: string) => {
   const project = new Project()

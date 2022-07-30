@@ -2,13 +2,13 @@ import { resolve } from 'path'
 import { createUnplugin } from 'unplugin'
 import { Project } from 'ts-morph'
 import { UntypeCompiler } from './core/renderer/index'
-import type { Options } from './types'
+import type { UntypePluginOptions } from './types'
 import { extractTypeToUntype } from './core/extractTypesToUntype'
 
 let project: Project
 let compiler: UntypeCompiler
 
-export default createUnplugin<Options>(() => ({
+export default createUnplugin<UntypePluginOptions>(() => ({
   name: 'unplugin-untype',
 
   buildStart() {
@@ -23,7 +23,7 @@ export default createUnplugin<Options>(() => ({
     return id.endsWith('main.ts')
   },
   transform(code, id) {
-    compiler = new UntypeCompiler()
+    compiler = new UntypeCompiler(project)
 
     const typesToUntype = extractTypeToUntype(code)
 
@@ -34,7 +34,7 @@ export default createUnplugin<Options>(() => ({
 
     const nodeMap = new Map()
 
-    compiler.processTree(ast)
+    compiler.processTree(ast, id)
 
     typesToUntype.forEach((typeName) => {
       nodeMap.set(typeName, compiler.renderType(typeName))

@@ -1,6 +1,4 @@
-export interface Options {
-  // define your plugin options here
-}
+export interface UntypePluginOptions {}
 
 export interface UntypeObject {
   definition: string

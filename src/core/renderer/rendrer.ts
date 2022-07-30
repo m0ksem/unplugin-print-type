@@ -7,6 +7,7 @@ export class UntypeRenderer extends UntypeTreeProcessor {
   private processed: string[] = []
   private cachedRenders: Map<string, string> = new Map()
   private parent: Node | null = null
+  private tab = 0
 
   private withParent<T>(parent: Node, cb: () => T) {
     this.parent = parent
@@ -15,15 +16,21 @@ export class UntypeRenderer extends UntypeTreeProcessor {
     return rt
   }
 
+  private renderTab = () => {
+    return ' '.repeat(this.tab)
+  }
+
   private renderNode(node: Node): string {
     if (!node) { return '' }
     const name = nodeName(node)
     const kind = node.getKind()
     const parent = this.parent
 
-    // console.log(name, node.getKindName())
-
     if (kind === SyntaxKind.TypeReference && name) {
+      const importPath = this.imports.get(name)
+
+      if (importPath) { this.resolveImport(importPath) }
+
       const cached = this.typeDeclarations.get(name)
       if (!cached) {
         const args = nodeTypes(node)
@@ -87,8 +94,19 @@ export class UntypeRenderer extends UntypeTreeProcessor {
     }
 
     if (kind === SyntaxKind.InterfaceDeclaration || kind === SyntaxKind.TypeLiteral) {
-      // TODO: Not sure about this formatting right here
-      return `{ \n  ${nodeTypes(node).map(child => this.renderNode(child)).join('\n  ')}\n}`
+      const types = nodeTypes(node)
+
+      const currentTab = this.renderTab()
+      this.tab += 2
+      const childTab = this.renderTab()
+      const rendered = types
+        .map(child => this.renderNode(child))
+      this.tab -= 2
+
+      if (rendered.length === 0) { return '{}' }
+      if (rendered.length === 1) { return `{ ${rendered} }` }
+
+      return `{ \n${childTab}${rendered.join(`\n${childTab}`)}\n${currentTab}}`
     }
 
     if (kind === SyntaxKind.ArrayType) {

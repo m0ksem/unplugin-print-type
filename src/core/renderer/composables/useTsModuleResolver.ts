@@ -11,6 +11,8 @@ export const useTsModuleResolver = () => {
    * @param path path to module
    */
   const resolveTypesFile = (path: string) => {
+    path = context.aliases[path] || path
+
     const moduleDirs = context.moduleDirs // TODO: Move to context
     const moduleDir = moduleDirs.find(dir => existsSync(resolve(dir, path)))
     if (!moduleDir) {

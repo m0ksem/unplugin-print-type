@@ -24,23 +24,23 @@ export interface PrintTypePluginOptions {
   *
   * @default [/\.ts$/]
   */
-  include?: FilterPattern
+  include: FilterPattern
 
   /**
   * Rules to exclude transforming target.
   *
-  * @default [/node_modules/, /\.git/]
+  * @default [/node_modules/]
   */
-  exclude?: FilterPattern
+  exclude: FilterPattern
 
   /**
    * If you have type imported from non-relative path, you can use this option to specify alias. By default all absolute imports will not be deeply printed.
    */
-  aliases?: {
+  aliases: {
     [key: string]: string
   }
 
-  moduleDirs?: string[]
+  moduleDirs: string[]
 }
 
 export interface UntypeObject {

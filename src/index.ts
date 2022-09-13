@@ -27,7 +27,7 @@ export default createUnplugin<Partial<PrintTypePluginOptions>>((options) => {
 
       renderer.addFile(id, code)
 
-      const typeNames = [...renderer.typesToPrint.keys()]
+      const typeNames = renderer.typesToPrint.keys() as unknown as string[]
 
       for (const typeToPrint of typeNames) {
         const untyped = renderer.renderTypeByName(typeToPrint)

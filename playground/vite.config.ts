@@ -5,6 +5,9 @@ import Unplugin from '../src/vite'
 export default defineConfig({
   plugins: [
     Inspect(),
-    Unplugin(),
+    Unplugin({
+      include: [/node_modules\/unplugin/, './main.ts', '../src/**/*.ts'],
+      exclude: [/node_modules\/@types/],
+    }),
   ],
 })

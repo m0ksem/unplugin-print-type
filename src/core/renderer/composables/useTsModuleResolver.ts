@@ -11,8 +11,6 @@ export const useTsModuleResolver = () => {
    * @param path path to module
    */
   const resolveTypesFile = (path: string) => {
-    path = context.aliases[path] || path
-
     const moduleDirs = context.moduleDirs // TODO: Move to context
     const moduleDir = moduleDirs.find(dir => existsSync(resolve(dir, path)))
     if (!moduleDir) {
@@ -27,7 +25,11 @@ export const useTsModuleResolver = () => {
 
     if (!packageJson.types) { return undefined }
 
-    return resolve(modulePath, packageJson.types)
+    const typesPath = resolve(modulePath, packageJson.types)
+
+    if (!context.filter(typesPath)) { return }
+
+    return typesPath
   }
 
   return {

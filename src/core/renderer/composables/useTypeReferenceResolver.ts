@@ -1,11 +1,12 @@
 import { dirname, resolve } from 'path'
-import type { Node, Project } from 'ts-morph'
 import { SyntaxKind } from 'ts-morph'
+import type { Node, Project } from 'ts-morph'
 import { unQuote } from '../../extractTypesToUntype'
 import { getNodeChildren, nodeName, nodeNameOrThrow, nodeType } from '../node-getters'
 import { walk } from '../../walk-ast'
 import type { RendererContext } from '../../../composables/useRendererContext'
 import { useRendererContext } from '../../../composables/useRendererContext'
+import { useTsModuleResolver } from './useTsModuleResolver'
 
 export const isNodeImport = (node: Node) => {
   return node && node.getKind() === SyntaxKind.ImportDeclaration
@@ -28,19 +29,30 @@ export const isNodePrintTypeFunction = (node: Node, options: RendererContext) =>
   if (fnName === options.fnName) { return true }
 }
 
+// const moduleDirs = ['node_modules', '../node_modules']
+
 /** Allow to resolve type reference from file or imports */
 export const useTypeReferenceResolver = (project: Project) => {
   const importPaths = new Map<string, string>()
   const declarations = new Map<string, Node>()
   const typesToPrint = new Map<string, Node>()
 
-  const processImport = (node: Node, filePath: string) => {
-    const path = getNodeChildren(node).find((node: { getKind: () => SyntaxKind }) => node.getKind() === SyntaxKind.StringLiteral)?.getText()
+  const { isTsModule, resolveTypesFile } = useTsModuleResolver()
 
+  const processImport = (node: Node, filePath: string) => {
+    const path = unQuote(getNodeChildren(node).find(node => node.getKind() === SyntaxKind.StringLiteral)!.getText())
     walk(node, (child) => {
       if (child.getKind() === SyntaxKind.ImportSpecifier) {
         const name = nodeNameOrThrow(child)
-        importPaths.set(name, resolve(dirname(filePath), `${unQuote(path!)}.ts`))
+        const currentDir = dirname(filePath)
+        if (isTsModule(path)) {
+          const typesFile = resolveTypesFile(path)
+
+          importPaths.set(name, typesFile)
+        }
+        else {
+          importPaths.set(name, resolve(currentDir, `${(path)}.ts`))
+        }
       }
     })
   }

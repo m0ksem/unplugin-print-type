@@ -5,9 +5,13 @@ declare global {
   /**
  * Compiler macro. Will transform type to human readable string.
  *
- * @usage
+ * @example
  *
- * PrintType<User>()
+ * ```ts
+ * type User = { name: string, age: number }
+ * const userType = PrintType<User>()
+ * console.log(userType) // '{ name: string, age: number }'
+ * ```
  */
   function PrintType<T>(): string
 }
@@ -16,10 +20,10 @@ export interface PrintTypePluginOptions {
   fnName: 'PrintType'
 
   /**
- * Rules to include transforming target.
- *
- * @default [/\.ts$/]
- */
+  * Rules to include transforming target.
+  *
+  * @default [/\.ts$/]
+  */
   include?: FilterPattern
 
   /**
@@ -28,6 +32,15 @@ export interface PrintTypePluginOptions {
   * @default [/node_modules/, /\.git/]
   */
   exclude?: FilterPattern
+
+  /**
+   * If you have type imported from non-relative path, you can use this option to specify alias. By default all absolute imports will not be deeply printed.
+   */
+  aliases?: {
+    [key: string]: string
+  }
+
+  moduleDirs?: string[]
 }
 
 export interface UntypeObject {

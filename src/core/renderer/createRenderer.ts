@@ -11,7 +11,7 @@ import { getNodeChildren, isNodePrimitive, isOptional, nodeName, nodeParameter, 
 export const createRenderer = (project: Project) => {
   const { resolveTypeReference, addFileToContext, resolveByName, typesToPrint } = useTypeReferenceResolver(project)
   const { getParentWhile, withParent } = useParentNode()
-  const { cache, withCache } = useTypeReferenceCache<string>()
+  const { cache, saveToCache: withCache } = useTypeReferenceCache<string>()
   const { withTab, tab } = useTabRenderer()
 
   const renderNode = (node: Node): string => {
@@ -76,6 +76,10 @@ export const createRenderer = (project: Project) => {
 
     if (kind === SyntaxKind.PropertySignature) {
       return `${nodeName(node)}${isOptional(node) ? '?' : ''}: ${renderNode(nodeType(node))}`
+    }
+
+    if (kind === SyntaxKind.MethodSignature) {
+      return `${nodeName(node)}(${renderNode(nodeParameter(node))}): ${renderNode(nodeType(node))}`
     }
 
     if (kind === SyntaxKind.IndexSignature) {
@@ -147,8 +151,8 @@ export const createRenderer = (project: Project) => {
     return 'unknown'
   }
 
-  const addFile = (filePath: string) => {
-    const ast = project.getSourceFileOrThrow(filePath)
+  const addFile = (filePath: string, code: string) => {
+    const ast = project.createSourceFile(filePath, code, { overwrite: true })
     return addFileToContext(ast, filePath)
   }
 

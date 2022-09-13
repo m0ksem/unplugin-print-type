@@ -20,7 +20,7 @@ export const useTypeReferenceCache = <T>() => {
       },
     },
 
-    withCache: (node: Node, cb: () => T) => {
+    saveToCache: (node: Node, cb: () => T) => {
       const result = cb()
       cached.set(node.getText(), result)
       return result

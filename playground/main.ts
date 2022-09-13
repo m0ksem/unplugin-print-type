@@ -1,3 +1,4 @@
+import type { UnpluginContext } from 'unplugin'
 import type { PrintTypePluginOptions } from '../src/types'
 
 interface Animal {
@@ -12,6 +13,7 @@ type User = {
 interface Plugin {
   user: User
   config: PrintTypePluginOptions
+  context: UnpluginContext
 }
 
 console.log(PrintType<Plugin>())

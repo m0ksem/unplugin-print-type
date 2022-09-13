@@ -11,6 +11,7 @@ export default createUnplugin<Partial<PrintTypePluginOptions>>((options) => {
 
   const project = new Project()
   const printTypeFunctionCallRegex = new RegExp(`${ctx.fnName}<.*>\(\)`, 'gm')
+  const renderer = createRenderer(project)
 
   return {
     name: 'unplugin-print-type',
@@ -24,10 +25,7 @@ export default createUnplugin<Partial<PrintTypePluginOptions>>((options) => {
     transform(code, id) {
       if (!printTypeFunctionCallRegex.test(code)) { return }
 
-      const renderer = createRenderer(project)
-
-      project.createSourceFile(id, code, { overwrite: true })
-      renderer.addFile(id)
+      renderer.addFile(id, code)
 
       const typeNames = [...renderer.typesToPrint.keys()]
 

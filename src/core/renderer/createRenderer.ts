@@ -79,7 +79,7 @@ export const createRenderer = (project: Project) => {
     }
 
     if (kind === SyntaxKind.MethodSignature) {
-      return `${nodeName(node)}(${renderNode(nodeParameter(node))}): ${renderNode(nodeType(node))}`
+      return `${nodeName(node)}(${renderNode(nodeParameter(node)!)}): ${renderNode(nodeType(node))}`
     }
 
     if (kind === SyntaxKind.IndexSignature) {

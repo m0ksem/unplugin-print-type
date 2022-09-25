@@ -4,11 +4,9 @@ import { createRenderer } from '../../src/core/renderer/createRenderer'
 export const createCodeRenderer = (code: string) => {
   const project = new Project()
 
-  project.createSourceFile('./main.ts', code)
-
   const renderer = createRenderer(project)
 
-  renderer.addFile('./main.ts')
+  renderer.addFile('./main.ts', code)
 
   return renderer
 }
@@ -21,7 +19,7 @@ export const createProjectRenderer = () => {
     renderer,
     addFile: (filePath: string, code: string) => {
       project.createSourceFile(filePath, code)
-      renderer.addFile(filePath)
+      renderer.addFile(filePath, code)
     },
   }
 }

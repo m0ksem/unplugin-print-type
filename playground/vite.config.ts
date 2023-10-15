@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [
     Inspect(),
     Unplugin({
-      include: [/node_modules\/unplugin/, './main.ts', '../src/**/*.ts'],
+      include: [/node_modules\/unplugin/, './main.ts', '../src/**/*.ts', /node_modules\/vite/],
       exclude: [/node_modules\/@types/],
     }),
   ],

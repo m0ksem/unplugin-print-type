@@ -30,7 +30,7 @@ export default createUnplugin<Partial<PrintTypePluginOptions>>((options) => {
       const typeNames = renderer.typesToPrint.keys() as unknown as string[]
 
       for (const typeToPrint of typeNames) {
-        const untyped = renderer.renderTypeByName(typeToPrint)
+        const untyped = renderer.renderTypeByName(typeToPrint, id)
         code = code.replace(new RegExp(`${ctx.fnName}<${typeToPrint}>\\(\\)`, 'gm'), renderer.createUntypeObject(untyped))
       }
 

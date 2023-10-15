@@ -1,6 +1,6 @@
 const untypeSyntaxParseRegex = /Untype\(([^\)]*)\)/gm
 
-export const unQuote = (str: string) => str.replace(/'|"|`/g, '')
+export const unQuote = (str: string) => str?.replace(/'|"|`/g, '')
 
 export const extractTypeToUntype = (code: string) => {
   const matched = code.matchAll(untypeSyntaxParseRegex)

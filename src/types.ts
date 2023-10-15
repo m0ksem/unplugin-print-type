@@ -16,7 +16,7 @@ declare global {
   function PrintType<T>(): string
 }
 
-export interface PrintTypePluginOptions {
+export type PrintTypePluginOptions = Partial<{
   fnName: 'PrintType'
 
   /**
@@ -41,7 +41,7 @@ export interface PrintTypePluginOptions {
   }
 
   moduleDirs: string[]
-}
+}>
 
 export interface UntypeObject {
   definition: string

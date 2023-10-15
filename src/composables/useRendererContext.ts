@@ -5,7 +5,7 @@ interface RuntimeContext {
   filter: ReturnType<typeof createFilter>
 }
 
-const defaultOptions: PrintTypePluginOptions & RuntimeContext = {
+export const defaultOptions: PrintTypePluginOptions & RuntimeContext = {
   fnName: 'PrintType',
   exclude: [/node_modules/],
   include: [/.ts$/, /.d.ts$/],

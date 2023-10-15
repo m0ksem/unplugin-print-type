@@ -14,7 +14,7 @@ export const createRenderer = (project: Project) => {
   const { cache, saveToCache: withCache } = useTypeReferenceCache<string>()
   const { withTab, tab } = useTabRenderer()
 
-  const renderNode = (node: Node): string => {
+  const renderNode = (node: Node, filePath: string): string => {
     if (!node) {
       throw new Error('Unexpected error: node is undefined')
     }
@@ -22,7 +22,7 @@ export const createRenderer = (project: Project) => {
     const kind = node.getKind()
 
     if (kind === SyntaxKind.TypeReference || kind === SyntaxKind.ExpressionWithTypeArguments) {
-      const typeReference = resolveTypeReference(node)
+      const typeReference = resolveTypeReference(node, filePath)
 
       if (!typeReference) {
         const name = nodeName(node)!
@@ -30,14 +30,14 @@ export const createRenderer = (project: Project) => {
 
         if (args.length === 0) { return name }
 
-        return `${name}<${args.map(arg => renderNode(arg)).join(', ')}>`
+        return `${name}<${args.map(arg => renderNode(arg, filePath)).join(', ')}>`
       }
 
       if (cache.get(node)) {
         return cache.get(node)!
       }
 
-      return withCache(node, () => withParent(node, () => renderNode(typeReference)))
+      return withCache(node, () => withParent(node, () => renderNode(typeReference, filePath)))
     }
 
     if (isNodePrimitive(node)) {
@@ -45,28 +45,28 @@ export const createRenderer = (project: Project) => {
     }
 
     if (kind === SyntaxKind.ParenthesizedType) {
-      return `(${renderNode(nodeType(node))})`
+      return `(${renderNode(nodeType(node), filePath)})`
     }
 
     if (kind === SyntaxKind.TypeAliasDeclaration) {
-      return renderNode(nodeType(node))
+      return renderNode(nodeType(node), filePath)
     }
 
     if (kind === SyntaxKind.ArrayType) {
-      return `${renderNode(nodeType(node))}[]`
+      return `${renderNode(nodeType(node), filePath)}[]`
     }
 
     // Function argument or index signature parameter
     if (kind === SyntaxKind.Parameter) {
-      return `${nodeName(node)}: ${renderNode(nodeType(node))}`
+      return `${nodeName(node)}: ${renderNode(nodeType(node), filePath)}`
     }
 
     if (kind === SyntaxKind.FunctionType) {
       const children = getNodeChildren(node)
-      const returnType = renderNode(children.find(child => child.getKind() !== SyntaxKind.Parameter)!)
+      const returnType = renderNode(children.find(child => child.getKind() !== SyntaxKind.Parameter)!, filePath)
       const params = children
         .filter(child => child.getKind() === SyntaxKind.Parameter)
-        .map(child => `${nodeName(child)}: ${renderNode(nodeType(child))}`)
+        .map(child => `${nodeName(child)}: ${renderNode(nodeType(child), filePath)}`)
         .join(', ')
 
       return `(${params}) => ${returnType}`
@@ -75,18 +75,18 @@ export const createRenderer = (project: Project) => {
     // Literals
 
     if (kind === SyntaxKind.PropertySignature) {
-      return `${nodeName(node)}${isOptional(node) ? '?' : ''}: ${renderNode(nodeType(node))}`
+      return `${nodeName(node)}${isOptional(node) ? '?' : ''}: ${renderNode(nodeType(node), filePath)}`
     }
 
     if (kind === SyntaxKind.MethodSignature) {
-      return `${nodeName(node)}(${renderNode(nodeParameter(node)!)}): ${renderNode(nodeType(node))}`
+      return `${nodeName(node)}(${renderNode(nodeParameter(node)!, filePath)}): ${renderNode(nodeType(node), filePath)}`
     }
 
     if (kind === SyntaxKind.IndexSignature) {
       const parameter = nodeParameter(node)
       const type = nodeType(node)
 
-      return `[${renderNode(parameter!)}]: ${renderNode(type)}`
+      return `[${renderNode(parameter!, filePath)}]: ${renderNode(type, filePath)}`
     }
 
     if (kind === SyntaxKind.InterfaceDeclaration || kind === SyntaxKind.TypeLiteral) {
@@ -98,13 +98,13 @@ export const createRenderer = (project: Project) => {
           .map((child) => {
             if (child.getKind() === SyntaxKind.HeritageClause) {
               return getNodeChildren(child).map((child) => {
-                const rendered = renderNode(child)
+                const rendered = renderNode(child, filePath)
                 if (rendered === '{}') { return '' }
                 if (rendered.startsWith('{ ')) { return rendered.slice(2, -2) }
                 return rendered
               }).join(`\n${tab}`)
             }
-            return renderNode(child)
+            return renderNode(child, filePath)
           })
 
         if (children.length === 0) { return '' }
@@ -124,7 +124,7 @@ export const createRenderer = (project: Project) => {
 
     if (kind === SyntaxKind.UnionType) {
       const type = getNodeChildren(node)
-        .map(child => renderNode(child))
+        .map(child => renderNode(child, filePath))
         .join(' | ')
 
       return isInUtil() ? `(${type})` : type
@@ -132,14 +132,14 @@ export const createRenderer = (project: Project) => {
 
     if (kind === SyntaxKind.IntersectionType) {
       const type = getNodeChildren(node)
-        .map(child => renderNode(child))
+        .map(child => renderNode(child, filePath))
         .join(' & ')
 
       return isInUtil() ? `(${type})` : type
     }
 
     if (kind === SyntaxKind.TemplateLiteralType || kind === SyntaxKind.TemplateLiteralTypeSpan) {
-      return getNodeChildren(node).reduce((acc, child) => acc + renderNode(child), '')
+      return getNodeChildren(node).reduce((acc, child) => acc + renderNode(child, filePath), '')
     }
 
     if ([SyntaxKind.TemplateHead, SyntaxKind.TemplateMiddle, SyntaxKind.TemplateTail].includes(kind)) {
@@ -153,12 +153,12 @@ export const createRenderer = (project: Project) => {
 
   const addFile = (filePath: string, code: string) => {
     const ast = project.createSourceFile(filePath, code, { overwrite: true })
-    return addFileToContext(ast, filePath)
+    return addFileToContext(ast)
   }
 
-  const renderTypeByName = (typeName: string) => {
-    const node = resolveByName(typeName)
-    return node ? renderNode(node) : typeName
+  const renderTypeByName = (typeName: string, filePath: string) => {
+    const node = resolveByName(typeName, filePath)
+    return node ? renderNode(node, filePath) : typeName
   }
 
   const createUntypeObject = (renderedType: string) => {

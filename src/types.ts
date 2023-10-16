@@ -1,18 +1,31 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { FilterPattern } from '@rollup/pluginutils'
 
+/**
+* Compiler macro. Will transform type to human readable string.
+*
+* @example
+*
+* ```ts
+* type User = { name: string, age: number }
+* const userType = PrintType<User>()
+* console.log(userType) // '{ name: string, age: number }'
+* ```
+*/
+export declare function PrintType<T>(): string
+
 declare global {
   /**
- * Compiler macro. Will transform type to human readable string.
- *
- * @example
- *
- * ```ts
- * type User = { name: string, age: number }
- * const userType = PrintType<User>()
- * console.log(userType) // '{ name: string, age: number }'
- * ```
- */
+  * Compiler macro. Will transform type to human readable string.
+  *
+  * @example
+  *
+  * ```ts
+  * type User = { name: string, age: number }
+  * const userType = PrintType<User>()
+  * console.log(userType) // '{ name: string, age: number }'
+  * ```
+  */
   function PrintType<T>(): string
 }
 

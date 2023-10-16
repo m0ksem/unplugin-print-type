@@ -19,8 +19,8 @@ describe('primitive', () => {
     '{}',
   ].forEach((type) => {
     it(type, () => {
-      const renderer = createCodeRenderer(`type User = ${type}`)
-      expect(renderer.renderTypeByName('User')).toEqual(type)
+      const renderer = createCodeRenderer(`type Primitive = ${type}`)
+      expect(renderer.renderTypeByName('Primitive', './main.ts')).toEqual(type)
     })
   })
 })

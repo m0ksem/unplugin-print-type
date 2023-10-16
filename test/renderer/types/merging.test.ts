@@ -10,8 +10,8 @@ describe('merging', () => {
     '`${number}-${string}`',
   ].forEach((type) => {
     it(type, () => {
-      const renderer = createCodeRenderer(`type User = ${type}`)
-      expect(renderer.renderTypeByName('User')).toEqual(type)
+      const renderer = createCodeRenderer(`type MergedType = ${type}`)
+      expect(renderer.renderTypeByName('MergedType', './main.ts')).toEqual(type)
     })
   })
 })

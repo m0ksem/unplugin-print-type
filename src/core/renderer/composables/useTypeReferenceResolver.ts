@@ -80,6 +80,8 @@ export const useTypeReferenceResolver = (project: Project) => {
     if (existsSync(indexTsFile)) {
       return indexTsFile
     }
+
+    console.warn('Cannot resolve import path', resolve(dirname(importer), path), 'from', importer)
   }
 
   const findNodeDeclaration = (source: Node, filePath: string, name: string) => {

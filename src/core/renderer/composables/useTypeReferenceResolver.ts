@@ -224,7 +224,8 @@ export const useTypeReferenceResolver = (project: Project) => {
     return resolveByName(name, filePath)
   }
 
-  const getNodeGenerics = (node: Node) => {
+  const getNodeGenerics = (node: Node | undefined) => {
+    if (!node) { return }
     return nodeGenerics.get(node)
   }
 

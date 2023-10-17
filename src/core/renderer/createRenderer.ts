@@ -27,12 +27,12 @@ export const createRenderer = (project: Project) => {
       const name = nodeName(node)!
 
       if (getParent(0) && getParent(1)) {
-        const argNames = getParent(0).getChildrenOfKind(SyntaxKind.TypeParameter).map(child => nodeName(child))
-        let argValues = getParent(1).getChildrenOfKind(SyntaxKind.SyntaxList)?.[0]?.getChildren().map(child => child.getText())
+        const argNames = getParent(0)?.getChildrenOfKind(SyntaxKind.TypeParameter).map(child => nodeName(child))
+        let argValues = getParent(1)?.getChildrenOfKind(SyntaxKind.SyntaxList)?.[0]?.getChildren().map(child => child.getText())
 
         if (!argValues) {
           argValues = getParent(0)
-            .getChildrenOfKind(SyntaxKind.TypeParameter)
+            ?.getChildrenOfKind(SyntaxKind.TypeParameter)
             .map((child) => {
               if (child.getChildCount() === 3) {
                 if (child.getChildAtIndex(1).getKind() !== SyntaxKind.EqualsToken) {
@@ -54,15 +54,16 @@ export const createRenderer = (project: Project) => {
 
               return undefined
             })
+            .filter(child => child !== undefined) as string[]
         }
 
-        if (argNames.includes(name)) {
+        if (argNames?.includes(name)) {
           const argValue = argValues[argNames.indexOf(name)]
 
           if (argValue) { return argValue }
         }
 
-        const parentGenerics = getParent(-1).getChildrenOfKind(SyntaxKind.TypeParameter).map(child => nodeName(child))
+        const parentGenerics = getParent(-1)?.getChildrenOfKind(SyntaxKind.TypeParameter).map(child => nodeName(child))
         const generics = getNodeGenerics(getParent(-1))
 
         if (generics) {
@@ -167,7 +168,7 @@ export const createRenderer = (project: Project) => {
           .filter(child => child !== undefined)
 
         if (children.length === 0) { return '{}' }
-        if (children.length === 1 && !children[0].includes('\n')) { return ` ${children[0]} ` }
+        if (children.length === 1 && !children[0]?.includes('\n')) { return ` ${children[0]} ` }
 
         return `{\n${tab}${children.join(`,\n${tab}`)}\n${parentTab}}`
       })
@@ -217,7 +218,7 @@ export const createRenderer = (project: Project) => {
           .filter(child => child !== undefined)
 
         if (children.length === 0) { return '' }
-        if (children.length === 1 && !children[0].includes('\n')) { return ` ${children[0]} ` }
+        if (children.length === 1 && !children[0]?.includes('\n')) { return ` ${children[0]} ` }
 
         return `\n${tab}${children.join(`\n${tab}`)}\n${parentTab}`
       })
@@ -270,11 +271,11 @@ export const createRenderer = (project: Project) => {
         .map((child) => {
           const keyword = child.getPreviousSibling()
 
-          if (keyword.getKind() === SyntaxKind.ExtendsKeyword) {
+          if (keyword?.getKind() === SyntaxKind.ExtendsKeyword) {
             return ` extends ${withParent(child, () => renderNode(child))}`
           }
 
-          if (keyword.getKind() === SyntaxKind.EqualsToken) {
+          if (keyword?.getKind() === SyntaxKind.EqualsToken) {
             return ` = ${withParent(child, () => renderNode(child))}`
           }
 

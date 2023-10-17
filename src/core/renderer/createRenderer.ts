@@ -9,13 +9,14 @@ import {
 import { getNodeChildren, isNodePrimitive, isOptional, nodeName, nodeParameter, nodeType, nodeTypes } from './node-getters'
 
 export const createRenderer = (project: Project) => {
-  const { resolveTypeReference, addFileToContext, resolveByName, typesToPrint } = useTypeReferenceResolver(project)
-  const { getParentWhile, withParent } = useParentNode()
+  const { resolveTypeReference, addFileToContext, resolveByName, typesToPrint, getNodeGenerics } = useTypeReferenceResolver(project)
+  const { withParent, getParent } = useParentNode()
   const { cache, saveToCache: withCache } = useTypeReferenceCache<string>()
   const { withTab, tab } = useTabRenderer()
 
   const renderNode = (node: Node, filePath: string): string => {
     if (!node) {
+      console.trace()
       throw new Error('Unexpected error: node is undefined')
     }
 
@@ -23,9 +24,62 @@ export const createRenderer = (project: Project) => {
 
     if (kind === SyntaxKind.TypeReference || kind === SyntaxKind.ExpressionWithTypeArguments) {
       const typeReference = resolveTypeReference(node, filePath)
+      const name = nodeName(node)!
+
+      if (getParent(0) && getParent(1)) {
+        const argNames = getParent(0).getChildrenOfKind(SyntaxKind.TypeParameter).map(child => nodeName(child))
+        let argValues = getParent(1).getChildrenOfKind(SyntaxKind.SyntaxList)?.[0]?.getChildren().map(child => child.getText())
+
+        if (!argValues) {
+          argValues = getParent(0)
+            .getChildrenOfKind(SyntaxKind.TypeParameter)
+            .map((child) => {
+              if (child.getChildCount() === 3) {
+                if (child.getChildAtIndex(1).getKind() !== SyntaxKind.EqualsToken) {
+                  return undefined
+                }
+
+                if (child.getChildAtIndex(2).getText() === node.getText()) { return undefined }
+                return renderNode(child.getChildAtIndex(2), filePath)
+              }
+
+              if (child.getChildCount() === 5) {
+                if (child.getChildAtIndex(3).getKind() !== SyntaxKind.EqualsToken) {
+                  return undefined
+                }
+
+                if (child.getChildAtIndex(4).getText() === node.getText()) { return undefined }
+                return renderNode(child.getChildAtIndex(4), filePath)
+              }
+
+              return undefined
+            })
+        }
+
+        if (argNames.includes(name)) {
+          const argValue = argValues[argNames.indexOf(name)]
+
+          if (argValue) { return argValue }
+        }
+
+        const parentGenerics = getParent(-1).getChildrenOfKind(SyntaxKind.TypeParameter).map(child => nodeName(child))
+        const generics = getNodeGenerics(getParent(-1))
+
+        if (generics) {
+          const genericNameIndex = parentGenerics?.indexOf(name)
+          const originalName = generics[genericNameIndex!]
+
+          if (originalName) {
+            const resolved = resolveByName(originalName, filePath)
+
+            if (resolved) {
+              return renderNode(resolved, filePath)
+            }
+          }
+        }
+      }
 
       if (!typeReference) {
-        const name = nodeName(node)!
         const args = nodeTypes(node)
 
         if (args.length === 0) { return name }
@@ -46,10 +100,6 @@ export const createRenderer = (project: Project) => {
 
     if (kind === SyntaxKind.ParenthesizedType) {
       return `(${renderNode(nodeType(node), filePath)})`
-    }
-
-    if (kind === SyntaxKind.TypeAliasDeclaration) {
-      return renderNode(nodeType(node), filePath)
     }
 
     if (kind === SyntaxKind.ArrayType) {
@@ -89,13 +139,16 @@ export const createRenderer = (project: Project) => {
       return `[${renderNode(parameter!, filePath)}]: ${renderNode(type, filePath)}`
     }
 
-    if (kind === SyntaxKind.InterfaceDeclaration || kind === SyntaxKind.TypeLiteral) {
+    if (kind === SyntaxKind.TypeLiteral) {
       const types = nodeTypes(node)
       const parentTab = tab.toString()
-
-      const inner = withTab((tab) => {
+      return withTab((tab) => {
         const children = types
           .map((child) => {
+            if (child.getKind() === SyntaxKind.TypeParameter) {
+              return undefined
+            }
+
             if (child.getKind() === SyntaxKind.HeritageClause) {
               return getNodeChildren(child).map((child) => {
                 const rendered = renderNode(child, filePath)
@@ -104,14 +157,78 @@ export const createRenderer = (project: Project) => {
                 return rendered
               }).join(`\n${tab}`)
             }
+
+            if (child.getKind() === SyntaxKind.PropertySignature) {
+              return withParent(node, () => renderNode(child, filePath))
+            }
+
             return renderNode(child, filePath)
           })
+          .filter(child => child !== undefined)
+
+        if (children.length === 0) { return '{}' }
+        if (children.length === 1 && !children[0].includes('\n')) { return ` ${children[0]} ` }
+
+        return `{\n${tab}${children.join(`,\n${tab}`)}\n${parentTab}}`
+      })
+    }
+
+    if (kind === SyntaxKind.TypeAliasDeclaration) {
+      const literal = node.getFirstChildByKind(SyntaxKind.TypeLiteral) || nodeType(node)
+
+      const inner = withParent(node, () => renderNode(literal, filePath))
+      const genericTypes = node.getChildrenOfKind(SyntaxKind.TypeParameter)
+
+      if (genericTypes.length > 0 && !getParent() && !getNodeGenerics(node)) {
+        const genericType = genericTypes.map(child => renderNode(child, filePath)).join(', ')
+
+        return `<${genericType}>${inner}`
+      }
+
+      return inner
+    }
+
+    if (kind === SyntaxKind.InterfaceDeclaration) {
+      const types = nodeTypes(node)
+      const parentTab = tab.toString()
+
+      const inner = withTab((tab) => {
+        const children = types
+          .map((child) => {
+            if (child.getKind() === SyntaxKind.TypeParameter) {
+              return undefined
+            }
+
+            if (child.getKind() === SyntaxKind.HeritageClause) {
+              return getNodeChildren(child).map((child) => {
+                const rendered = renderNode(child, filePath)
+                if (rendered === '{}') { return '' }
+                if (rendered.startsWith('{ ')) { return rendered.slice(2, -2) }
+                return rendered
+              }).join(`\n${tab}`)
+            }
+
+            if (child.getKind() === SyntaxKind.PropertySignature) {
+              return withParent(node, () => renderNode(child, filePath))
+            }
+
+            return renderNode(child, filePath)
+          })
+          .filter(child => child !== undefined)
 
         if (children.length === 0) { return '' }
-        if (children.length === 1) { return ` ${children[0]} ` }
+        if (children.length === 1 && !children[0].includes('\n')) { return ` ${children[0]} ` }
 
         return `\n${tab}${children.join(`\n${tab}`)}\n${parentTab}`
       })
+
+      const genericTypes = node.getChildrenOfKind(SyntaxKind.TypeParameter)
+
+      if (genericTypes.length > 0 && !getParent() && !getNodeGenerics(node)) {
+        const genericType = genericTypes.map(child => renderNode(child, filePath)).join(', ')
+
+        return `<${genericType}>{${inner}}`
+      }
 
       return `{${inner}}`
     }
@@ -119,7 +236,7 @@ export const createRenderer = (project: Project) => {
     // Merge and utils
 
     const isInUtil = () => {
-      return getParentWhile(current => ['UnionType', 'IntersectionType'].includes(current.getKindName()))
+      return node.getParentIfKind(SyntaxKind.UnionType) || node.getParentIfKind(SyntaxKind.IntersectionType)
     }
 
     if (kind === SyntaxKind.UnionType) {
@@ -144,6 +261,30 @@ export const createRenderer = (project: Project) => {
 
     if ([SyntaxKind.TemplateHead, SyntaxKind.TemplateMiddle, SyntaxKind.TemplateTail].includes(kind)) {
       return node.getText()
+    }
+
+    if (kind === SyntaxKind.TypeParameter) {
+      const children = node.getChildrenOfKind(SyntaxKind.TypeReference)
+
+      const childrenRendered = children
+        .map((child) => {
+          const keyword = child.getPreviousSibling()
+
+          if (keyword.getKind() === SyntaxKind.ExtendsKeyword) {
+            return ` extends ${withParent(child, () => renderNode(child, filePath))}`
+          }
+
+          if (keyword.getKind() === SyntaxKind.EqualsToken) {
+            return ` = ${withParent(child, () => renderNode(child, filePath))}`
+          }
+
+          return null
+        })
+        .filter(child => child !== null)
+
+      const name = nodeName(node)!
+
+      return `${name}${childrenRendered}`
     }
 
     console.warn(`Unexpected node kind: ${node.getKindName()}. Rendered as unknown type.`)

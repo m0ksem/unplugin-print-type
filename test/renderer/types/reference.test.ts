@@ -9,7 +9,7 @@ type User = { name: string, role: Role }
 `)
     expect(renderer.renderTypeByName('User', './main.ts')).toEqual(`
 {
-  name: string
+  name: string,
   role: 'admin' | 'user'
 }
     `.trim())
@@ -55,8 +55,8 @@ type User = { name: string, role: Role, gender: Gender }
 
     expect(renderer.renderTypeByName('User', './main.ts')).toEqual(`
 {
-  name: string
-  role: 'admin' | 'user'
+  name: string,
+  role: 'admin' | 'user',
   gender: 'male' | 'female' | '🤖'
 }
         `.trim())
@@ -71,8 +71,8 @@ type User = { name: string, div: HTMLElement, type: SomeGlobalType }
 
     expect(renderer.renderTypeByName('User', './main.ts')).toEqual(`
 {
-  name: string
-  div: HTMLElement
+  name: string,
+  div: HTMLElement,
   type: SomeGlobalType
 }
         `.trim())
@@ -88,8 +88,44 @@ type User = { name: string, div: HTMLElement, type: SomeGlobalType }
 
     expect(renderer.renderTypeByName('User', './main.ts')).toEqual(`
 {
-  name: string
+  name: string,
   nested: { test: number }
+}`.trim())
+  })
+
+  it('generic', () => {
+    const { renderer, addFile } = createProjectRenderer()
+
+    addFile('./main.ts', `
+  type Gamer = { name: string, games: string[] }
+  type User<Child> = { name: string, children: Child[] }
+    `)
+
+    expect(renderer.renderTypeByName('User<Gamer>', './main.ts')).toEqual(`
+{
+  name: string,
+  children: {
+    name: string,
+    games: string[]
+  }[]
+}`.trim())
+  })
+
+  it('generic with default', () => {
+    const { renderer, addFile } = createProjectRenderer()
+
+    addFile('./main.ts', `
+  type Gamer = { name: string, games: string[] }
+  type User<Child = Gamer> = { name: string, children: Child[] }
+    `)
+
+    expect(renderer.renderTypeByName('User', './main.ts')).toEqual(`
+<Child = {
+  name: string,
+  games: string[]
+}>{
+  name: string,
+  children: Child[]
 }`.trim())
   })
 })

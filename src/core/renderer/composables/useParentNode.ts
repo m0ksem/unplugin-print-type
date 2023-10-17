@@ -20,6 +20,16 @@ export const useParentNode = () => {
     return undefined
   }
 
+  const getLastParent = (): Node | undefined => parents[parents.length - 1]
+
+  const getParent = (index = 0): Node | undefined => {
+    if (index < 0) {
+      return parents[index * -1 - 1]
+    }
+
+    return parents[parents.length - index - 1]
+  }
+
   const withParent = <T>(parent: Node, cd: () => T): T => {
     parents.push(parent)
     const result = cd()
@@ -28,6 +38,8 @@ export const useParentNode = () => {
   }
 
   return {
+    getParent,
+    getLastParent,
     getParentWhile,
     withParent,
   }

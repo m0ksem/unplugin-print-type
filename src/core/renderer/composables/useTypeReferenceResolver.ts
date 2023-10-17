@@ -1,6 +1,6 @@
 import { dirname, resolve } from 'path'
 import { existsSync } from 'fs'
-import { SyntaxKind } from 'ts-morph'
+import { SyntaxKind, ts } from 'ts-morph'
 import type { Node, Project } from 'ts-morph'
 import { unQuote } from '../../extractTypesToUntype'
 import { nodeName, nodeType } from '../node-getters'
@@ -43,6 +43,7 @@ export const isNodeImportSpecifier = (node: Node) => {
 export const useTypeReferenceResolver = (project: Project) => {
   const declarations = new Map<string, Node>()
   const typesToPrint = new Map<string, Node>()
+  const nodeGenerics = new Map<Node, string[]>()
 
   const { isTsModule, resolveTypesFile } = useTsModuleResolver()
 
@@ -53,7 +54,7 @@ export const useTypeReferenceResolver = (project: Project) => {
       if (!child) { return }
 
       if (isNodePrintTypeFunction(child, options)) {
-        typesToPrint.set(nodeName(nodeType(child))!, child)
+        typesToPrint.set(nodeType(child).getText(), child)
       }
     })
   }
@@ -86,6 +87,9 @@ export const useTypeReferenceResolver = (project: Project) => {
 
   const findNodeDeclaration = (source: Node, filePath: string, name: string) => {
     let node: Node | null = null
+    const generics = name.split('<')[1]?.replace('>', '').split(',')
+
+    name = name.split('<')[0]
 
     if (!source) {
       return
@@ -196,6 +200,10 @@ export const useTypeReferenceResolver = (project: Project) => {
       }
     })
 
+    if (generics && generics.length > 0) {
+      nodeGenerics.set(node!, generics)
+    }
+
     return node
   }
 
@@ -216,7 +224,12 @@ export const useTypeReferenceResolver = (project: Project) => {
     return resolveByName(name, filePath)
   }
 
+  const getNodeGenerics = (node: Node) => {
+    return nodeGenerics.get(node)
+  }
+
   return {
+    getNodeGenerics,
     // TOOD: Maybe we need here a way to add file from source
     addFileToContext,
     resolveTypeReference,

@@ -1,6 +1,6 @@
 import { dirname, resolve } from 'path'
 import { existsSync } from 'fs'
-import { SyntaxKind, ts } from 'ts-morph'
+import { SyntaxKind } from 'ts-morph'
 import type { Node, Project } from 'ts-morph'
 import { unQuote } from '../../extractTypesToUntype'
 import { nodeName, nodeType } from '../node-getters'

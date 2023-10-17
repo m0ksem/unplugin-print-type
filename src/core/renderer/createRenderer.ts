@@ -14,7 +14,7 @@ export const createRenderer = (project: Project) => {
   const { cache, saveToCache: withCache } = useTypeReferenceCache<string>()
   const { withTab, tab } = useTabRenderer()
 
-  const renderNode = (node: Node, filePath: string): string => {
+  const renderNode = (node: Node): string => {
     if (!node) {
       console.trace()
       throw new Error('Unexpected error: node is undefined')
@@ -23,7 +23,7 @@ export const createRenderer = (project: Project) => {
     const kind = node.getKind()
 
     if (kind === SyntaxKind.TypeReference || kind === SyntaxKind.ExpressionWithTypeArguments) {
-      const typeReference = resolveTypeReference(node, filePath)
+      const typeReference = resolveTypeReference(node, node.getSourceFile().getFilePath())
       const name = nodeName(node)!
 
       if (getParent(0) && getParent(1)) {
@@ -40,7 +40,7 @@ export const createRenderer = (project: Project) => {
                 }
 
                 if (child.getChildAtIndex(2).getText() === node.getText()) { return undefined }
-                return renderNode(child.getChildAtIndex(2), filePath)
+                return renderNode(child.getChildAtIndex(2))
               }
 
               if (child.getChildCount() === 5) {
@@ -49,7 +49,7 @@ export const createRenderer = (project: Project) => {
                 }
 
                 if (child.getChildAtIndex(4).getText() === node.getText()) { return undefined }
-                return renderNode(child.getChildAtIndex(4), filePath)
+                return renderNode(child.getChildAtIndex(4))
               }
 
               return undefined
@@ -70,10 +70,10 @@ export const createRenderer = (project: Project) => {
           const originalName = generics[genericNameIndex!]
 
           if (originalName) {
-            const resolved = resolveByName(originalName, filePath)
+            const resolved = resolveByName(originalName, node.getSourceFile().getFilePath())
 
             if (resolved) {
-              return renderNode(resolved, filePath)
+              return renderNode(resolved)
             }
           }
         }
@@ -84,14 +84,14 @@ export const createRenderer = (project: Project) => {
 
         if (args.length === 0) { return name }
 
-        return `${name}<${args.map(arg => renderNode(arg, filePath)).join(', ')}>`
+        return `${name}<${args.map(arg => renderNode(arg)).join(', ')}>`
       }
 
       if (cache.get(node)) {
         return cache.get(node)!
       }
 
-      return withCache(node, () => withParent(node, () => renderNode(typeReference, filePath)))
+      return withCache(node, () => withParent(node, () => renderNode(typeReference)))
     }
 
     if (isNodePrimitive(node)) {
@@ -99,24 +99,24 @@ export const createRenderer = (project: Project) => {
     }
 
     if (kind === SyntaxKind.ParenthesizedType) {
-      return `(${renderNode(nodeType(node), filePath)})`
+      return `(${renderNode(nodeType(node))})`
     }
 
     if (kind === SyntaxKind.ArrayType) {
-      return `${renderNode(nodeType(node), filePath)}[]`
+      return `${renderNode(nodeType(node))}[]`
     }
 
     // Function argument or index signature parameter
     if (kind === SyntaxKind.Parameter) {
-      return `${nodeName(node)}: ${renderNode(nodeType(node), filePath)}`
+      return `${nodeName(node)}: ${renderNode(nodeType(node))}`
     }
 
     if (kind === SyntaxKind.FunctionType) {
       const children = getNodeChildren(node)
-      const returnType = renderNode(children.find(child => child.getKind() !== SyntaxKind.Parameter)!, filePath)
+      const returnType = renderNode(children.find(child => child.getKind() !== SyntaxKind.Parameter)!)
       const params = children
         .filter(child => child.getKind() === SyntaxKind.Parameter)
-        .map(child => `${nodeName(child)}: ${renderNode(nodeType(child), filePath)}`)
+        .map(child => `${nodeName(child)}: ${renderNode(nodeType(child))}`)
         .join(', ')
 
       return `(${params}) => ${returnType}`
@@ -125,18 +125,18 @@ export const createRenderer = (project: Project) => {
     // Literals
 
     if (kind === SyntaxKind.PropertySignature) {
-      return `${nodeName(node)}${isOptional(node) ? '?' : ''}: ${renderNode(nodeType(node), filePath)}`
+      return `${nodeName(node)}${isOptional(node) ? '?' : ''}: ${renderNode(nodeType(node))}`
     }
 
     if (kind === SyntaxKind.MethodSignature) {
-      return `${nodeName(node)}(${renderNode(nodeParameter(node)!, filePath)}): ${renderNode(nodeType(node), filePath)}`
+      return `${nodeName(node)}(${renderNode(nodeParameter(node)!)}): ${renderNode(nodeType(node))}`
     }
 
     if (kind === SyntaxKind.IndexSignature) {
       const parameter = nodeParameter(node)
       const type = nodeType(node)
 
-      return `[${renderNode(parameter!, filePath)}]: ${renderNode(type, filePath)}`
+      return `[${renderNode(parameter!)}]: ${renderNode(type)}`
     }
 
     if (kind === SyntaxKind.TypeLiteral) {
@@ -151,7 +151,7 @@ export const createRenderer = (project: Project) => {
 
             if (child.getKind() === SyntaxKind.HeritageClause) {
               return getNodeChildren(child).map((child) => {
-                const rendered = renderNode(child, filePath)
+                const rendered = renderNode(child)
                 if (rendered === '{}') { return '' }
                 if (rendered.startsWith('{ ')) { return rendered.slice(2, -2) }
                 return rendered
@@ -159,10 +159,10 @@ export const createRenderer = (project: Project) => {
             }
 
             if (child.getKind() === SyntaxKind.PropertySignature) {
-              return withParent(node, () => renderNode(child, filePath))
+              return withParent(node, () => renderNode(child))
             }
 
-            return renderNode(child, filePath)
+            return renderNode(child)
           })
           .filter(child => child !== undefined)
 
@@ -176,11 +176,11 @@ export const createRenderer = (project: Project) => {
     if (kind === SyntaxKind.TypeAliasDeclaration) {
       const literal = node.getFirstChildByKind(SyntaxKind.TypeLiteral) || nodeType(node)
 
-      const inner = withParent(node, () => renderNode(literal, filePath))
+      const inner = withParent(node, () => renderNode(literal))
       const genericTypes = node.getChildrenOfKind(SyntaxKind.TypeParameter)
 
       if (genericTypes.length > 0 && !getParent() && !getNodeGenerics(node)) {
-        const genericType = genericTypes.map(child => renderNode(child, filePath)).join(', ')
+        const genericType = genericTypes.map(child => renderNode(child)).join(', ')
 
         return `<${genericType}>${inner}`
       }
@@ -201,7 +201,7 @@ export const createRenderer = (project: Project) => {
 
             if (child.getKind() === SyntaxKind.HeritageClause) {
               return getNodeChildren(child).map((child) => {
-                const rendered = renderNode(child, filePath)
+                const rendered = renderNode(child)
                 if (rendered === '{}') { return '' }
                 if (rendered.startsWith('{ ')) { return rendered.slice(2, -2) }
                 return rendered
@@ -209,10 +209,10 @@ export const createRenderer = (project: Project) => {
             }
 
             if (child.getKind() === SyntaxKind.PropertySignature) {
-              return withParent(node, () => renderNode(child, filePath))
+              return withParent(node, () => renderNode(child))
             }
 
-            return renderNode(child, filePath)
+            return renderNode(child)
           })
           .filter(child => child !== undefined)
 
@@ -225,7 +225,7 @@ export const createRenderer = (project: Project) => {
       const genericTypes = node.getChildrenOfKind(SyntaxKind.TypeParameter)
 
       if (genericTypes.length > 0 && !getParent() && !getNodeGenerics(node)) {
-        const genericType = genericTypes.map(child => renderNode(child, filePath)).join(', ')
+        const genericType = genericTypes.map(child => renderNode(child)).join(', ')
 
         return `<${genericType}>{${inner}}`
       }
@@ -241,7 +241,7 @@ export const createRenderer = (project: Project) => {
 
     if (kind === SyntaxKind.UnionType) {
       const type = getNodeChildren(node)
-        .map(child => renderNode(child, filePath))
+        .map(child => renderNode(child))
         .join(' | ')
 
       return isInUtil() ? `(${type})` : type
@@ -249,14 +249,14 @@ export const createRenderer = (project: Project) => {
 
     if (kind === SyntaxKind.IntersectionType) {
       const type = getNodeChildren(node)
-        .map(child => renderNode(child, filePath))
+        .map(child => renderNode(child))
         .join(' & ')
 
       return isInUtil() ? `(${type})` : type
     }
 
     if (kind === SyntaxKind.TemplateLiteralType || kind === SyntaxKind.TemplateLiteralTypeSpan) {
-      return getNodeChildren(node).reduce((acc, child) => acc + renderNode(child, filePath), '')
+      return getNodeChildren(node).reduce((acc, child) => acc + renderNode(child), '')
     }
 
     if ([SyntaxKind.TemplateHead, SyntaxKind.TemplateMiddle, SyntaxKind.TemplateTail].includes(kind)) {
@@ -271,11 +271,11 @@ export const createRenderer = (project: Project) => {
           const keyword = child.getPreviousSibling()
 
           if (keyword.getKind() === SyntaxKind.ExtendsKeyword) {
-            return ` extends ${withParent(child, () => renderNode(child, filePath))}`
+            return ` extends ${withParent(child, () => renderNode(child))}`
           }
 
           if (keyword.getKind() === SyntaxKind.EqualsToken) {
-            return ` = ${withParent(child, () => renderNode(child, filePath))}`
+            return ` = ${withParent(child, () => renderNode(child))}`
           }
 
           return null
@@ -299,7 +299,7 @@ export const createRenderer = (project: Project) => {
 
   const renderTypeByName = (typeName: string, filePath: string) => {
     const node = resolveByName(typeName, filePath)
-    return node ? renderNode(node, filePath) : typeName
+    return node ? renderNode(node) : typeName
   }
 
   const createUntypeObject = (renderedType: string) => {

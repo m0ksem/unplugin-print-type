@@ -1,3 +1,7 @@
-import { Plugin } from 'vite'
+type D = number
 
-export { Plugin as Test }
+interface P {
+  d: D
+}
+
+export { P as Test }

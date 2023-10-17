@@ -1,4 +1,3 @@
-interface Gamer { name: string; games: string[] }
-interface User<Child = Gamer> { name: string; children: Child[] }
+import type { NestedType } from './src'
 
-console.log(PrintType<User>())
+console.log(PrintType<NestedType>())
